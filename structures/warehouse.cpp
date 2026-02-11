@@ -1,18 +1,21 @@
+#include <queue>
+#include <vector>
 #include "./shelf.cpp"
 
-// class Warehouse {
-//     private:
-//         Shelf shelves[SHELVES_SIZE];
-//         // arrival queue
-//         InputCrate queue[12];
-//         // sorting floor
-//         //
-//         //
-//     public:
-//         void doShit() {
-//             InputCrate newCrate;
-//             newCrate.uuid = "123";
-//             newCrate.weight = 123;
-//             queue[10] = newCrate;
-//         }
-// };
+class Warehouse {
+    private:
+        Shelf shelves[SHELVES_SIZE];
+        std::queue<InputCrate> queue;
+        std::vector<Crate> sortingFloor;
+        
+    public:
+        void setQueue(std::queue<InputCrate> queue) {
+            this->queue = queue;
+        }
+        
+        void sort() {
+            // todo
+            // loop through shelves and put wherever conditions are met (see instruction)
+            // loop until all crates are put or impossible to put
+        }
+};
