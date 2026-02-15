@@ -25,7 +25,7 @@ class Crate {
         }
         
         void setWeight(int weight) {
-            this->weight  = weight;
+            this->weight = weight;
         }
 
         void setUuid(std::string uuid) {

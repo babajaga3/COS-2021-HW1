@@ -1,21 +1,49 @@
+#include "../linkedlist/index.cpp"
+#include "./shelf.cpp"
 #include <queue>
 #include <vector>
-#include "./shelf.cpp"
 
 class Warehouse {
-    private:
-        Shelf shelves[SHELVES_SIZE];
-        std::queue<InputCrate> queue;
-        std::vector<Crate> sortingFloor;
+private:
+  LinkedList<Shelf> shelves;
+  std::queue<InputCrate> queue;
+  std::vector<Crate> sortingFloor;
+
+public:
+  void setQueue(std::queue<InputCrate> queue) { this->queue = queue; }
+
+  std::queue<InputCrate> getQueue() const { return queue; }
+
+  void sort() {
+    Shelf shelf;
+
+    while (!queue.empty()) {
+      InputCrate ic = queue.front();
+      Crate crate = Crate(ic.weight, ic.uuid);
+
+      if (!shelf.isFull(crate)) {
+        shelf.push(crate);
+        std::cout << "added a new crate - " << crate.getWeight() << std::endl;
+      } else {
+        shelves.add(shelf);
+        std::cout << "shelf added to linked list - " << (shelf.isFull(crate) ? "True" : "False") << std::endl;
+        shelf.print();
         
-    public:
-        void setQueue(std::queue<InputCrate> queue) {
-            this->queue = queue;
-        }
-        
-        void sort() {
-            // todo
-            // loop through shelves and put wherever conditions are met (see instruction)
-            // loop until all crates are put or impossible to put
-        }
+        shelf = Shelf();
+        shelf.print();
+        shelf.push(crate);
+        std::cout << "added a new crate - " << crate.getWeight() << std::endl;
+      }
+
+      queue.pop();
+    }
+    
+    shelves.add(shelf);
+  }
+
+  void paintShelves() {
+    // std::vector<Shelf*> items = shelves.listItems();
+
+    // shelves.getHead()->print();
+  }
 };

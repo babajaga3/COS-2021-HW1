@@ -15,7 +15,7 @@ class Node {
         }
         
         Node* getNext() {
-            return &next;
+            return next;
         }
         
         void setNext(Node* n) {

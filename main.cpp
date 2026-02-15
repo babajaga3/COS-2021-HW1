@@ -1,39 +1,47 @@
-#include <iostream>
+#include "structures/warehouse.cpp"
 #include <fstream>
+#include <iostream>
 #include <queue>
-#include "node/index.cpp"
-#include "consts.hpp"
 
 int main() {
+  Warehouse *wh = new Warehouse();
+
   std::string line;
-  std::ifstream myFile("crates.txt");
-  
+  std::ifstream crateFile("crates.txt");
+
   std::queue<InputCrate> queue;
-  
-  if (myFile.is_open()) {
-    while (getline(myFile, line, '\n')) {
-        std::string delimiter = " ";
-        std::string weight = line.substr(0, line.find(delimiter));
 
-        // Source - https://stackoverflow.com/a/14266139
-        // Posted by Vincenzo Pii, modified by community. See post 'Timeline' for change history
-        // Retrieved 2026-02-10, License - CC BY-SA 4.0
-        line.erase(0, line.find(delimiter) + delimiter.length());
+  if (crateFile.is_open()) {
+    while (getline(crateFile, line, '\n')) {
+      std::string delimiter = " ";
+      std::string weight = line.substr(0, line.find(delimiter));
 
-        std::string uuid = line.substr(0, line.find(delimiter));
-        
-        InputCrate ic = { std::stoi(weight), uuid };
-        
-        queue.push(ic);
+      // Source - https://stackoverflow.com/a/14266139
+      // Posted by Vincenzo Pii, modified by community. See post 'Timeline' for
+      // change history Retrieved 2026-02-10, License - CC BY-SA 4.0
+      line.erase(0, line.find(delimiter) + delimiter.length());
+
+      std::string uuid = line.substr(0, line.find(delimiter));
+
+      InputCrate ic = {std::stoi(weight), uuid};
+
+      queue.push(ic);
     };
     
-    std::cout << queue.size() << std::endl;
+    wh->setQueue(queue);
 
-    myFile.close();
+    crateFile.close();
   }
 
   else
     std::cout << "Unable to open file";
+  
+  wh->sort();
+  
+  wh->paintShelves();
+  
 
+  delete wh;
+  
   return 0;
 }

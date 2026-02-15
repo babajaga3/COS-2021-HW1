@@ -1,4 +1,5 @@
 #include <iostream>
+#include <optional>
 #include "./crate.cpp"
 #include "../consts.hpp"
 
@@ -16,33 +17,52 @@ class Shelf {
             
             // handle overflow
             if (top >= BULK_LIMIT - 1) {
-                std::cout << "Stack overflow" << std::endl;
+                // std::cout << "Stack overflow" << std::endl;
                 return;
             }
             
             // handle weight limit
             if ((totalWeight + crate.getWeight()) >= WEIGHT_LIMIT) {
-                std::cout << "YOURE TOO FAT!!!" << std::endl;
+                // std::cout << "YOURE TOO FAT!!!" << std::endl;
                 return;
             }
             
             array[++top] = crate;
             totalWeight += crate.getWeight();
 
-            std::cout << "pushed!" << std::endl;
+            // std::cout << crate.getWeight() << " " << crate.getUuid() << std::endl;
+            
+            return;
         }
         
-        void pop() {
+        Crate pop() {
             
             // handle if empty
             if (top < 0) {
                 std::cout << "IM ALREADY EMPTY BRAT" << std::endl;
-                return;
+                return Crate(0, ""); // todo fix
             }
             
             Crate lastItem = array[--top];
             totalWeight -= lastItem.getWeight();
             
+            return lastItem;
+            
             // delete lastItem; bate we should do this i think
-        }       
+        }
+        
+        bool isFull(Crate crate) {            
+            // handle weight limit
+            if ((totalWeight + crate.getWeight()) > WEIGHT_LIMIT || top >= BULK_LIMIT - 1) {
+                if ((totalWeight + crate.getWeight()) > WEIGHT_LIMIT) std::cout << "-- too much weight!" << std::endl;
+                if (top >= BULK_LIMIT - 1) std::cout << "-- too many crates!" << std::endl;
+                return true;
+            }
+            
+            return false;
+        }
+        
+        void print() {
+            std::cout << " The total weight of head shelf is: " << totalWeight << std::endl;
+        }
 };
