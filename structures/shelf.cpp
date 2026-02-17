@@ -1,68 +1,58 @@
 #include <iostream>
-#include <optional>
-#include "./crate.cpp"
-#include "../consts.hpp"
+#include "crate.cpp"
+#include "../config.hpp"
 
 class Shelf {
-    private:
-        int top;
-        Crate array[BULK_LIMIT];
-        
-        int totalWeight;
-        
-    public:
-        Shelf() { top = -1; totalWeight = 0; }
-        
-        void push(Crate crate) {
-            
-            // handle overflow
-            if (top >= BULK_LIMIT - 1) {
-                // std::cout << "Stack overflow" << std::endl;
-                return;
-            }
-            
-            // handle weight limit
-            if ((totalWeight + crate.getWeight()) >= WEIGHT_LIMIT) {
-                // std::cout << "YOURE TOO FAT!!!" << std::endl;
-                return;
-            }
-            
-            array[++top] = crate;
-            totalWeight += crate.getWeight();
+    int top;
+    int totalWeight;
+    Crate array[BULK_LIMIT]{};
 
-            // std::cout << crate.getWeight() << " " << crate.getUuid() << std::endl;
-            
-            return;
+public:
+    Shelf() {
+        top = -1;
+        totalWeight = 0;
+    }
+
+    void push(Crate crate) {
+        if (top >= BULK_LIMIT - 1) {
+            throw std::range_error("shelf overflow");
         }
-        
-        Crate pop() {
-            
-            // handle if empty
-            if (top < 0) {
-                std::cout << "IM ALREADY EMPTY BRAT" << std::endl;
-                return Crate(0, ""); // todo fix
-            }
-            
-            Crate lastItem = array[--top];
-            totalWeight -= lastItem.getWeight();
-            
-            return lastItem;
-            
-            // delete lastItem; bate we should do this i think
+
+        // handle weight limit
+        if ((totalWeight + crate.get_weight()) > WEIGHT_LIMIT) {
+            throw std::range_error("shelf is too heavy");
         }
-        
-        bool isFull(Crate crate) {            
-            // handle weight limit
-            if ((totalWeight + crate.getWeight()) > WEIGHT_LIMIT || top >= BULK_LIMIT - 1) {
-                if ((totalWeight + crate.getWeight()) > WEIGHT_LIMIT) std::cout << "-- too much weight!" << std::endl;
-                if (top >= BULK_LIMIT - 1) std::cout << "-- too many crates!" << std::endl;
-                return true;
-            }
-            
-            return false;
+
+        if (array[top].get_weight() < crate.get_weight()) {
+            throw std::logic_error("cannot put heavier crate on lighter one");
         }
-        
-        void print() {
-            std::cout << " The total weight of head shelf is: " << totalWeight << std::endl;
+
+        array[++top] = crate;
+        totalWeight += crate.get_weight();
+    }
+
+    void pop() {
+        // handle if empty
+        if (top < 0) {
+            throw std::range_error("shelf underflow");
         }
+
+        Crate lastItem = array[--top];
+        totalWeight -= lastItem.get_weight();
+    }
+
+    void print() {
+        for (int i = 0; i < BULK_LIMIT; i++) {
+            std::cout << array[i].get_weight() << " ";
+        }
+
+        std::cout << std::endl;
+
+        if (totalWeight > WEIGHT_LIMIT) {
+            std::cout << "BAD" << std::endl;
+        } else {
+            std::cout << "GOOD" << std::endl;
+        }
+    }
+
 };
