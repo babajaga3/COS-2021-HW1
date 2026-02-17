@@ -1,19 +1,24 @@
+#include "base_structures/queue.hpp"
 #include "structures/warehouse.cpp"
 #include <fstream>
 #include <iostream>
-#include <queue>
+#include <string>
 
+/*
+ * MADE BY:
+ * - TOMA BOUROV 200274715
+ * - HAYK MATEVOSYAN 200293223
+*/
 
 int main() {
   Warehouse *wh = new Warehouse();
+  Queue<InputCrate> arrival_queue = wh->get_arrival_queue();
 
-  std::string line;
-  std::ifstream crateFile("crates.txt");
+  std::ifstream crate_file("crates.txt");
 
-  std::queue<InputCrate> queue;
-
-  if (crateFile.is_open()) {
-    while (getline(crateFile, line, '\n')) {
+  if (crate_file.is_open()) {
+    std::string line;
+    while (getline(crate_file, line, '\n')) {
       std::string delimiter = " ";
       std::string weight = line.substr(0, line.find(delimiter));
 
@@ -23,24 +28,22 @@ int main() {
       line.erase(0, line.find(delimiter) + delimiter.length());
 
       std::string uuid = line.substr(0, line.find(delimiter));
+      InputCrate ic = { std::stoi(weight), uuid };
 
-      InputCrate ic = {std::stoi(weight), uuid};
-
-      queue.push(ic);
+      arrival_queue.enqueue(ic);
     };
-    
-    wh->setQueue(queue);
 
-    crateFile.close();
+    crate_file.close();
+  }
+  else {
+    std::cout << "Unable to open file";
   }
 
-  else
-    std::cout << "Unable to open file";
-  
+  wh->set_arrival_queue(arrival_queue);
+
   wh->sort();
-  
-  wh->paintShelves();
-  
+
+  wh->print();
 
   delete wh;
   
