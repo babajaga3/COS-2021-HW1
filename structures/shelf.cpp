@@ -1,6 +1,6 @@
 #include <iostream>
 #include "crate.cpp"
-#include "config.hpp"
+#include "./config.hpp"
 
 class Shelf {
     int top;
