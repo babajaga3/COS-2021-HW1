@@ -1,6 +1,6 @@
 #include <iostream>
 #include "crate.cpp"
-#include "../config.hpp"
+#include "config.hpp"
 
 class Shelf {
     int top;
@@ -23,12 +23,18 @@ public:
             throw std::range_error("shelf is too heavy");
         }
 
-        if (array[top].get_weight() < crate.get_weight()) {
-            throw std::logic_error("cannot put heavier crate on lighter one");
+        if (top < 0) {
+            array[++top] = crate;
+            totalWeight += crate.get_weight();
+        }
+        else {
+            if(array[top].get_weight() >= crate.get_weight()) {
+                array[++top] = crate;
+                totalWeight += crate.get_weight();
+            }
+            else throw std::logic_error("cannot put heavier crate on lighter one");
         }
 
-        array[++top] = crate;
-        totalWeight += crate.get_weight();
     }
 
     void pop() {
