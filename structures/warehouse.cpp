@@ -1,7 +1,8 @@
+#include <stdexcept>
 #include <vector>
 #include "shelf.cpp"
-#include "../base_structures/linked_list.hpp"
-#include "../base_structures/queue.hpp"
+#include "./base_structures/linked_list.hpp"
+#include "./base_structures/queue.hpp"
 
 class Warehouse {
     // 10 shelves
@@ -27,6 +28,7 @@ public:
     }
 
     void sort() {
+        int sum = 0;
         if (arrival_queue.is_empty()) {
             throw std::logic_error("Cannot sort items in an empty queue.");
         }
@@ -37,44 +39,19 @@ public:
             InputCrate ic = arrival_queue.dequeue();
             Crate crate = Crate(ic.weight, ic.uuid);
 
-
-            // crate.set_weight(ic.weight);
-            // crate.set_uuid(ic.uuid);
-
-            // std::cout << "________" << std::endl;
-            // std::cout << "current crate: " << crate.get_uuid() << " " << crate.get_weight() << std::endl;
-            // std::cout << "________" << std::endl;
-            //
-            // std::cout << "looping through shelves..." << std::endl;
             for (int i = 0; i <= NUMBER_OF_SHELVES; i++) {
-                // current_shelf.print();
-
-                // std::cout << "currently at shelf no.: " << i << std::endl;
-
                 try {
-                    // std::cout << "trying to push there..." << std::endl;
                     current_shelf.push(crate);
-                    // std::cout << "successfully pushed there, moving on to next crate..." << std::endl;
-                    // std::cout << std::endl;
-                    // std::cout << "current items in shelf: " << std::endl;
-                    // current_shelf.print();
+                    std::cout << crate.get_weight() << std::endl;;
                     break;
                 } catch (std::range_error e) {
-
                     shelves.add(current_shelf);
                     current_shelf = Shelf();
-
-                    // std::cout << "failed to push crate." << std::endl;
-                    // std::cout << "error is: " << _e.what() << std::endl;
-                    // std::cout << "trying next shelf..." << std::endl;
-                    // if (i == 9) {
-                    //     i = -1;
-                    // }
-
-                    // std::cout << _e.what() << std::endl;
-                }
+                } catch (std::logic_error e) {}
             }
         } while (arrival_queue.is_empty() == false);
+
+        shelves.add(current_shelf);
     }
 
     void print() {
