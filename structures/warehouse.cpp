@@ -12,6 +12,14 @@ class Warehouse {
     Queue<InputCrate> *arrival_queue;
     std::vector<Crate> *sorting_floor;
 
+    void erase_by_id(const std::string uuid) const {
+        for (int i = 0; i < sorting_floor->size(); i++) {
+            if (sorting_floor->at(i).get_uuid() == uuid) {
+                sorting_floor->erase(sorting_floor->begin() + i);
+            }
+        }
+    }
+
 public:
     Warehouse() {
         shelves = new LinkedList<Shelf>();
@@ -89,7 +97,7 @@ public:
 
         int fails = 0;
 
-        while (!arrival_queue->is_empty()) {
+        while (!arrival_queue->is_empty() || !sorting_floor->empty()) {
             Crate crate;
 
             if (this->sorting_floor->empty()) {
@@ -109,7 +117,7 @@ public:
 
                     // If crate is coming from floor, clear it.
                     if (!this->sorting_floor->empty()) {
-                        this->sorting_floor->pop_back();
+                        erase_by_id(crate.get_uuid());
                     }
 
                     std::printf("Sorted crate no.%s \n", crate.get_uuid().c_str());
@@ -118,7 +126,6 @@ public:
 
                 // Handle case where you are reordering shelves
                 if (!this->sorting_floor->empty()) {
-
                     // Get last shelf
                     Crate last = shelf->last();
 
@@ -134,16 +141,16 @@ public:
                             // Remove last shelf
                             Crate temp_crate = shelf->pop();
 
-                            //
+                            // Can i put the crate now?
                             if (shelf->can_put_on_shelf(crate)) {
                                 shelf->push(crate);
-                                this->sorting_floor->pop_back();
+                                erase_by_id(crate.get_uuid());
 
                                 std::printf("Resorted crate no.%s \n", crate.get_uuid().c_str());
                                 break;
                             }
 
-                            this->sorting_floor->insert(this->sorting_floor->begin(), temp_crate);
+                            this->sorting_floor->push_back(temp_crate);
                         }
                     } else {
                         continue;
@@ -160,7 +167,7 @@ public:
 
                 // If all else fails, add the crate to the sorting floor
                 if (i == shelves->get_size() - 1) {
-                    this->sorting_floor->insert(this->sorting_floor->begin(), crate);
+                    this->sorting_floor->push_back(crate);
                 }
             }
 
@@ -173,6 +180,14 @@ public:
             if (!arrival_queue->is_empty() && !this->sorting_floor->empty()) {
                 fails++;
             }
+        }
+
+        if (arrival_queue->is_empty()) {
+            std::cout << "Arrival queue is empty. Checking sorting floor...\n\n\n";
+        }
+
+        if (this->sorting_floor->empty()) {
+            std::cout << "Sorting floor is empty. Printing...\n\n\n";
         }
     }
 
@@ -228,6 +243,7 @@ public:
             std::printf("%-8s", shelves->get_element_at(i).get_total_weight() <= WEIGHT_LIMIT ? "GOOD" : "BAD");
         }
     }
+
 
     // new sorting algorithm design for hw 2
     // Step 1: check if there is an existing shelf?
