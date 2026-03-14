@@ -39,8 +39,6 @@ int main() {
     std::cout << "Unable to open file";
   }
 
-  wh->set_arrival_queue(arrival_queue);
-
   wh->main_sorting_function(0);
 
   wh->print();

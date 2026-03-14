@@ -8,35 +8,39 @@ class Warehouse {
     // 10 shelves
     LinkedList<Shelf> shelves;
     // 1 arrival queue
-    Queue<InputCrate> arrival_queue;
+    Queue<InputCrate>* arrival_queue;
     // 1 sorting floor
     std::vector<Crate> sorting_floor;
 
 public:
     Warehouse() {
         shelves = LinkedList<Shelf>(NUMBER_OF_SHELVES);
-        arrival_queue = Queue<InputCrate>();
+        arrival_queue = new Queue<InputCrate>();
         // todo sorting floor later
     }
 
-    Queue<InputCrate> get_arrival_queue() const {
-        return arrival_queue;
+    ~Warehouse() {
+        delete arrival_queue;
     }
 
-    void set_arrival_queue(Queue<InputCrate> arrival_queue) {
+    Queue<InputCrate>& get_arrival_queue() const {
+        return *arrival_queue;
+    }
+
+    void set_arrival_queue(Queue<InputCrate>* arrival_queue) {
         this->arrival_queue = arrival_queue;
     }
 
     void sort() {
         int sum = 0;
-        if (arrival_queue.is_empty()) {
+        if (arrival_queue->is_empty()) {
             throw std::logic_error("Cannot sort items in an empty queue.");
         }
 
         Shelf current_shelf = Shelf();
 
         do {
-            InputCrate ic = arrival_queue.dequeue();
+            InputCrate ic = arrival_queue->dequeue();
             Crate crate = Crate(ic.weight, ic.uuid);
 
             for (int i = 0; i <= NUMBER_OF_SHELVES; i++) {
@@ -49,7 +53,7 @@ public:
                     current_shelf = Shelf();
                 } catch (std::logic_error e) {}
             }
-        } while (arrival_queue.is_empty() == false);
+        } while (arrival_queue->is_empty() == false);
 
         shelves.add(current_shelf);
     }
@@ -148,7 +152,7 @@ public:
 
         if (this->sorting_floor.empty()) {
             try {
-                const InputCrate ic = arrival_queue.dequeue();
+                const InputCrate ic = arrival_queue->dequeue();
                 current_crate = Crate(ic.weight, ic.uuid);
             } catch (std::length_error e) {
                 std::cout << "both arrival queue and sorting floor are empty" << std::endl;
@@ -187,7 +191,7 @@ public:
             shelves.add(current_shelf);
         }
 
-        if (!this->sorting_floor.empty() || !arrival_queue.is_empty()) {
+        if (!this->sorting_floor.empty() || !arrival_queue->is_empty()) {
             main_sorting_function(index);
         }
     }
