@@ -103,20 +103,21 @@ public:
                 // Get i-th shelf
                 Shelf *shelf = &shelves->get_element_at(i);
 
+                // try to add the crate normally.
+                if (shelf->can_put_on_shelf(crate)) {
+                    shelf->push(crate);
+
+                    // If crate is coming from floor, clear it.
+                    if (!this->sorting_floor->empty()) {
+                        this->sorting_floor->pop_back();
+                    }
+
+                    std::printf("Sorted crate no.%s \n", crate.get_uuid().c_str());
+                    break;
+                }
+
                 // Handle case where you are reordering shelves
                 if (!this->sorting_floor->empty()) {
-                    // If for some reason you can straight up put it - do it.
-                    if (shelf->can_put_on_shelf(crate)) {
-                        // Put it
-                        shelf->push(crate);
-
-                        // Clean up sorting floor
-                        this->sorting_floor->pop_back();
-                        std::printf("Resorted crate no.%s \n", crate.get_uuid().c_str());
-
-                        // Start while loop again.
-                        break;
-                    }
 
                     // Get last shelf
                     Crate last = shelf->last();
@@ -129,9 +130,7 @@ public:
 
                     // If it is better to reorder... (ie, weight would be more, without breaking the rules)
                     if (should_reorder) {
-
                         while (!shelf->can_put_on_shelf(crate)) {
-
                             // Remove last shelf
                             Crate temp_crate = shelf->pop();
 
@@ -144,12 +143,8 @@ public:
                                 break;
                             }
 
-                    this->sorting_floor->push_back(temp_crate);
-
-
-                            // this->sorting_floor->insert(this->sorting_floor->begin(), temp_crate);
+                            this->sorting_floor->insert(this->sorting_floor->begin(), temp_crate);
                         }
-
                     } else {
                         continue;
                     }
@@ -163,8 +158,9 @@ public:
                     break;
                 }
 
+                // If all else fails, add the crate to the sorting floor
                 if (i == shelves->get_size() - 1) {
-                    this->sorting_floor->push_back(crate);
+                    this->sorting_floor->insert(this->sorting_floor->begin(), crate);
                 }
             }
 
