@@ -56,7 +56,7 @@ public:
         }
     }
 
-    void sort() {
+    void sort() const {
         if (arrival_queue->is_empty()) {
             throw std::logic_error("Cannot sort items in an empty queue.");
         }
@@ -72,10 +72,10 @@ public:
                     current_shelf.push(crate);
                     std::cout << crate.get_weight() << std::endl;;
                     break;
-                } catch (std::range_error e) {
+                } catch (std::range_error &e) {
                     shelves->push_back(current_shelf);
                     current_shelf = Shelf();
-                } catch (std::logic_error e) {
+                } catch (std::logic_error &e) {
                 }
             }
         } while (arrival_queue->is_empty() == false);
@@ -135,7 +135,6 @@ public:
         }
     }
 
-    void sort_two() {
         // new sorting algorithm design for hw 2
         // Step 1: check if there is an existing shelf?
         // If no: create shelf, run function again
@@ -173,7 +172,6 @@ public:
         // remove the element before that last checked index - 1
         // try check again
         // if none work - go to next shelf (create new shelf and pass it in the function), and try whole function again.
-    }
 
     // void sort_items_in_shelf(Shelf& current_shelf, Crate& current_crate, const int index) {
     //     const Crate last = current_shelf.last();
