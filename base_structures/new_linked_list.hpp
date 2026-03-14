@@ -5,17 +5,17 @@
 template<typename T>
 class LinkedList {
 private:
-    Node<T>* head;
-    Node<T>* tail;
+    Node<T> *head;
+    Node<T> *tail;
 
-LinkedList() {
-    head = nullptr;
-    tail = nullptr;
-}
+    LinkedList() {
+        head = nullptr;
+        tail = nullptr;
+    }
 
 public:
     void push_back(T data) {
-        Node<T>* temp = new Node<T>(data);
+        Node<T> *temp = new Node<T>(data);
 
         if (head == nullptr) {
             head = temp;
@@ -27,7 +27,7 @@ public:
     }
 
     void push_front(T data) {
-        Node<T>* temp = new Node<T>(data);
+        Node<T> *temp = new Node<T>(data);
 
         temp->set_next(head);
 

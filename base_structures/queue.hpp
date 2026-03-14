@@ -46,7 +46,6 @@ public:
         Node<T> *current = head;
 
         // loop through until you reach the end
-        // then
         while (current->get_next()) {
             parent_of_current = current;
             current = current->get_next();
@@ -67,9 +66,4 @@ public:
     bool is_empty() {
         return head == nullptr;
     }
-
-    // T get_front() {}
-    //
-    // T get_rear() {}
-    //
 };

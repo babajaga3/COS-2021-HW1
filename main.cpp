@@ -18,6 +18,7 @@ int main() {
     // Read crates from file and add to arrival queue
     wh->read_crates(FILENAME);
 
+    // Cleanup
     delete wh;
 
     return 0;
