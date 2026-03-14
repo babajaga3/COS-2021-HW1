@@ -8,22 +8,21 @@
 #include "../base_structures/queue.hpp"
 
 class Warehouse {
-    // 10 shelves
     LinkedList<Shelf> *shelves;
-    // 1 arrival queue
     Queue<InputCrate> *arrival_queue;
-    // 1 sorting floor
-    std::vector<Crate> sorting_floor;
+    std::vector<Crate> *sorting_floor;
 
 public:
     Warehouse() {
         shelves = new LinkedList<Shelf>();
         arrival_queue = new Queue<InputCrate>();
+        sorting_floor = new std::vector<Crate>();
     }
 
     ~Warehouse() {
         delete shelves;
         delete arrival_queue;
+        delete sorting_floor;
     }
 
     Queue<InputCrate> &get_arrival_queue() const {
@@ -82,6 +81,105 @@ public:
         shelves->push_back(current_shelf);
     }
 
+    void sort_hw2() const {
+        // Create 10 shelves
+        for (int i = 0; i < NUMBER_OF_SHELVES; i++) {
+            shelves->push_back(Shelf());
+        }
+
+        int fails = 0;
+
+        while (!arrival_queue->is_empty()) {
+            Crate crate;
+
+            if (this->sorting_floor->empty()) {
+                crate = Crate::convert_to_crate(arrival_queue->dequeue());
+            } else {
+                crate = this->sorting_floor->back();
+            }
+
+            // Basically try all shelves for this crate
+            for (int i = 0; i < shelves->get_size(); i++) {
+                // Get i-th shelf
+                Shelf *shelf = &shelves->get_element_at(i);
+
+                // Handle case where you are reordering shelves
+                if (!this->sorting_floor->empty()) {
+                    // If for some reason you can straight up put it - do it.
+                    if (shelf->can_put_on_shelf(crate)) {
+                        // Put it
+                        shelf->push(crate);
+
+                        // Clean up sorting floor
+                        this->sorting_floor->pop_back();
+                        std::printf("Resorted crate no.%s \n", crate.get_uuid().c_str());
+
+                        // Start while loop again.
+                        break;
+                    }
+
+                    // Get last shelf
+                    Crate last = shelf->last();
+
+                    const int new_total_weight =
+                            shelf->get_total_weight() + crate.get_weight() - last.get_weight();
+
+                    const bool should_reorder = new_total_weight > shelf->get_total_weight() && new_total_weight <=
+                                                WEIGHT_LIMIT;
+
+                    // If it is better to reorder... (ie, weight would be more, without breaking the rules)
+                    if (should_reorder) {
+
+                        while (!shelf->can_put_on_shelf(crate)) {
+
+                            // Remove last shelf
+                            Crate temp_crate = shelf->pop();
+
+                            //
+                            if (shelf->can_put_on_shelf(crate)) {
+                                shelf->push(crate);
+                                this->sorting_floor->pop_back();
+
+                                std::printf("Resorted crate no.%s \n", crate.get_uuid().c_str());
+                                break;
+                            }
+
+                    this->sorting_floor->push_back(temp_crate);
+
+
+                            // this->sorting_floor->insert(this->sorting_floor->begin(), temp_crate);
+                        }
+
+                    } else {
+                        continue;
+                    }
+
+                    break;
+                }
+
+                if (shelf->can_put_on_shelf(crate)) {
+                    shelf->push(crate);
+                    std::printf("Sorted crate no.%s \n", crate.get_uuid().c_str());
+                    break;
+                }
+
+                if (i == shelves->get_size() - 1) {
+                    this->sorting_floor->push_back(crate);
+                }
+            }
+
+            if (fails > 100) {
+                std::cout << "Failed too many times. Exiting loop..." << "\n";
+                // throw std::logic_error("errorsss");
+                break;
+            }
+
+            if (!arrival_queue->is_empty() && !this->sorting_floor->empty()) {
+                fails++;
+            }
+        }
+    }
+
     void print() const {
         std::printf("%-8s%-8s%-8s%-8s%-8s\n", "SHELF01", "SHELF02", "SHELF03", "SHELF04", "SHELF05");
 
@@ -135,43 +233,43 @@ public:
         }
     }
 
-        // new sorting algorithm design for hw 2
-        // Step 1: check if there is an existing shelf?
-        // If no: create shelf, run function again
-        // If yes: continue
+    // new sorting algorithm design for hw 2
+    // Step 1: check if there is an existing shelf?
+    // If no: create shelf, run function again
+    // If yes: continue
 
-        // Step 2: Check if sorting floor is empty?
-        // If yes: get crate from arrival queue, continue
-        // If no: get last element from sf, continue
+    // Step 2: Check if sorting floor is empty?
+    // If yes: get crate from arrival queue, continue
+    // If no: get last element from sf, continue
 
-        // Step 3: Using element,
-        // Run function `can_put_on_shelf`?
-        // If yes: put and
-        // Run function again
+    // Step 3: Using element,
+    // Run function `can_put_on_shelf`?
+    // If yes: put and
+    // Run function again
 
-        // If no: If you remove last element, combine
-        //  new total weight with incoming element
-        // Is new total weight > old total weight && < max weight?
-        // If yes:
-        // remove last element and add to sorting floor
+    // If no: If you remove last element, combine
+    //  new total weight with incoming element
+    // Is new total weight > old total weight && < max weight?
+    // If yes:
+    // remove last element and add to sorting floor
 
-        /*
-         *  check if you can put it on top
-         *
-         *  if no:
-         *      remove last element to sorting floor
-         *      try again
-         *
-         *  if yes:
-         *      put to shelf
-         *      run whole function recursively
-         *
-         */
+    /*
+     *  check if you can put it on top
+     *
+     *  if no:
+     *      remove last element to sorting floor
+     *      try again
+     *
+     *  if yes:
+     *      put to shelf
+     *      run whole function recursively
+     *
+     */
 
-        // If no:
-        // remove the element before that last checked index - 1
-        // try check again
-        // if none work - go to next shelf (create new shelf and pass it in the function), and try whole function again.
+    // If no:
+    // remove the element before that last checked index - 1
+    // try check again
+    // if none work - go to next shelf (create new shelf and pass it in the function), and try whole function again.
 
     // void sort_items_in_shelf(Shelf& current_shelf, Crate& current_crate, const int index) {
     //     const Crate last = current_shelf.last();
