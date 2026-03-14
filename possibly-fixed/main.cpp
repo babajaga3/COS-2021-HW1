@@ -1,5 +1,5 @@
-#include "base_structures/queue.hpp"
-#include "structures/warehouse.cpp"
+#include "queue.hpp"
+#include "warehouse.cpp"
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -41,7 +41,7 @@ int main() {
 
   wh->set_arrival_queue(arrival_queue);
 
-  wh->main_sorting_function(0);
+  wh->sort();
 
   wh->print();
 

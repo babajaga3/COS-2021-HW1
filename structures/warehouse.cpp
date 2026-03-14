@@ -1,8 +1,8 @@
 #include <stdexcept>
 #include <vector>
 #include "shelf.cpp"
-#include "./base_structures/linked_list.hpp"
-#include "./base_structures/queue.hpp"
+#include "../base_structures/linked_list.hpp"
+#include "../base_structures/queue.hpp"
 
 class Warehouse {
     // 10 shelves
@@ -55,8 +55,9 @@ public:
     }
 
     void print() {
+        std::cout << "function finished\n\n";
         for (int i = 0; i < NUMBER_OF_SHELVES; i++) {
-            Shelf curr_shelf = shelves.get_element_at(i);
+            Shelf curr_shelf = shelves.get_element_at(i).get_data();
             std::cout << "_______" << std::endl;
             std::cout << "SHELF " << i + 1 << std::endl;
             curr_shelf.print();
@@ -101,16 +102,93 @@ public:
                         // try check again
                         // if none work - go to next shelf (create new shelf and pass it in the function), and try whole function again.
 
-    }
 
-    void main_function() {
 
     }
 
-    void can_put_on_shelf() {
-        // Check if you can add point-blank
-        // 1. number of elements
-        // 2. order
-        // 3. max weight
+    void sort_items_in_shelf(Shelf& current_shelf, Crate& current_crate, const int index) {
+        const Crate last = current_shelf.last();
+
+        const int new_total_weight =
+            current_shelf.get_total_weight() + current_crate.get_weight() - last.get_weight();
+
+        if (new_total_weight > current_shelf.get_total_weight() && new_total_weight < WEIGHT_LIMIT) {
+
+            while (!current_shelf.can_put_on_top(current_crate)) {
+                const Crate last_shelf = current_shelf.pop();
+                this->sorting_floor.push_back(last_shelf);
+            }
+
+            current_shelf.push(current_crate);
+
+            shelves.set_element_at(0, current_shelf);
+
+            main_sorting_function(index);
+
+        } else {
+            main_sorting_function(index + 1);
+        }
+    }
+
+    void main_sorting_function(const int index) {
+        Shelf current_shelf;
+        Crate current_crate;
+
+        if (!shelves.is_empty()) {
+            try {
+                current_shelf = shelves.get_element_at(index).get_data();
+            } catch (std::out_of_range e) {
+                const Shelf new_shelf;
+                shelves.add(new_shelf);
+
+                main_sorting_function(index);
+                return;
+            }
+        }
+
+        if (this->sorting_floor.empty()) {
+            try {
+                const InputCrate ic = arrival_queue.dequeue();
+                current_crate = Crate(ic.weight, ic.uuid);
+            } catch (std::length_error e) {
+                std::cout << "both arrival queue and sorting floor are empty" << std::endl;
+                this->print();
+                exit(0);
+            }
+        } else {
+            current_crate = this->sorting_floor.back();
+            this->sorting_floor.pop_back();
+        }
+
+        if (current_shelf.can_put_on_shelf(current_crate)) {
+            current_shelf.push(current_crate);
+            // shelves.set_element_at(index, current_shelf);
+        } else {
+            const Crate last = current_shelf.last();
+
+            const int new_total_weight =
+                current_shelf.get_total_weight() + current_crate.get_weight() - last.get_weight();
+
+            if (new_total_weight > current_shelf.get_total_weight() && new_total_weight <= WEIGHT_LIMIT) {
+
+                while (!current_shelf.can_put_on_top(current_crate)) {
+                    const Crate last_shelf = current_shelf.pop();
+                    this->sorting_floor.push_back(last_shelf);
+                }
+
+                current_shelf.push(current_crate);
+                // shelves.set_element_at(index, current_shelf);
+            } else {
+                main_sorting_function(index + 1);
+            }
+        }
+
+        if (shelves.is_empty()) {
+            shelves.add(current_shelf);
+        }
+
+        if (!this->sorting_floor.empty() || !arrival_queue.is_empty()) {
+            main_sorting_function(index);
+        }
     }
 };

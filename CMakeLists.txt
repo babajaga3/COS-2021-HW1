@@ -13,4 +13,6 @@ add_executable(hw1
         structures/shelf.cpp
         structures/warehouse.cpp
         config.hpp
-        main.cpp)
+        main.cpp
+        base_structures/new_linked_list.hpp
+)

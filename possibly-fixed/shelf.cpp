@@ -5,81 +5,93 @@
 class Shelf {
     int top;
     int totalWeight;
-    Crate array[BULK_LIMIT];
+    Crate array[BULK_LIMIT]{};
 
 public:
-    Shelf() : top(-1), totalWeight(0) {}
+    Shelf() {
+        top = -1;
+        totalWeight = 0;
+    }
 
     void push(Crate crate) {
         if (top >= BULK_LIMIT - 1) {
             throw std::range_error("shelf overflow");
         }
 
+        // handle weight limit
         if ((totalWeight + crate.get_weight()) > WEIGHT_LIMIT) {
             throw std::range_error("shelf is too heavy");
         }
 
-        if (is_empty() || array[top].get_weight() >= crate.get_weight()) {
+        if (top < 0) {
             array[++top] = crate;
             totalWeight += crate.get_weight();
-        } else {
-            throw std::logic_error("cannot put heavier crate on lighter one");
         }
+        else {
+            if(array[top].get_weight() >= crate.get_weight()) {
+                array[++top] = crate;
+                totalWeight += crate.get_weight();
+            }
+            else throw std::logic_error("cannot put heavier crate on lighter one");
+        }
+
     }
 
     Crate pop() {
-        if (is_empty()) {
+        // handle if empty
+        if (top < 0) {
             throw std::range_error("shelf underflow");
         }
 
-        Crate lastItem = array[top];
-        array[top--] = Crate();
+        Crate lastItem = array[top--];
         totalWeight -= lastItem.get_weight();
+
         return lastItem;
     }
 
     void print() {
-        if (is_empty()) {
-            std::cout << "Shelf is empty\n";
-            return;
-        }
-
-        for (int i = 0; i <= top; i++) {
+        for (int i = 0; i < BULK_LIMIT; i++) {
             std::cout << array[i].get_weight() << " ";
         }
 
         std::cout << std::endl;
+
+        if (totalWeight > WEIGHT_LIMIT) {
+            std::cout << "BAD" << std::endl;
+        } else {
+            std::cout << "GOOD" << std::endl;
+        }
     }
 
     bool can_put_on_top(const Crate& crate) const {
-        if (is_empty()) {
-            return true;
+        // order
+        if (array[top].get_weight() <= crate.get_weight()) {
+            return false;
         }
 
-        return array[top].get_weight() > crate.get_weight();
+        return true;
     }
 
     bool can_put_on_shelf(const Crate& crate) const {
+        // number of items
         if (top >= BULK_LIMIT - 1) {
             return false;
         }
 
+        // order
+        if (array[top].get_weight() <= crate.get_weight()) {
+            return false;
+        }
+
+        // weight
         if ((totalWeight + crate.get_weight()) > WEIGHT_LIMIT) {
             return false;
         }
 
-        if (is_empty()) {
-            return true;
-        }
-
-        return array[top].get_weight() > crate.get_weight();
+        return true;
     }
 
     Crate last() const {
-        if (is_empty()) {
-            throw std::range_error("shelf is empty");
-        }
-
         return array[top];
     }
 

@@ -7,22 +7,20 @@ template<typename T>
 class LinkedList {
     Node<T> *head;
     int max_number_of_elements;
-    int size;
 
 public:
     LinkedList() {
         head = nullptr;
         max_number_of_elements = 0;
-        size = 0;
     }
 
     LinkedList(const int max_number_of_elements) {
         head = nullptr;
         this->max_number_of_elements = max_number_of_elements;
-        size = 0;
     }
 
     void add(T t) {
+        int number_of_elements = 1;
         // create a new node
         Node<T> *new_node = new Node<T>(t);
 
@@ -38,55 +36,61 @@ public:
         // loop through the whole list until the last element, then..
         while (current->get_next()) {
             current = current->get_next();
+            number_of_elements++;
+
+            if (number_of_elements > max_number_of_elements) {
+                throw std::out_of_range("Cannot add more elements");
+            }
         }
 
         // set the next one.
         current->set_next(new_node);
-        ++size;
     }
 
     // todo unused for now
     void remove() {
     }
 
-    Node<T>& get_element_at(int index) {
+    T get_element_at(const int index) {
         if (index < 0) {
-            throw std::out_of_range("Index cannot be negative");
+            throw std::out_of_range("Cannot get element at index"); // todo change
+            // return;
         }
 
-        Node<T>* current = head;
+        // get the current (first, head)
+        Node<T> *current = head;
 
+        // if index is 0 return the head data
+        if (index == 0) return current->get_data();
+
+        // loop through the list until landing at the right element
         for (int i = 0; i < index; i++) {
-            if (current == nullptr) {
-                throw std::out_of_range("Index out of range");
-            }
+            if (!current) throw std::out_of_range("Cannot get element at index");
             current = current->get_next();
         }
 
-        if (current == nullptr) {
-            throw std::out_of_range("Index out of range");
-        }
+        if (!current) throw std::out_of_range("Cannot get element at index");
 
-        return *current;
+        // return it
+        return current->get_data();
     }
 
     void set_element_at(const int index, const T data) {
         if (index < 0) {
-
-            if (index - 1 == size) {
-                this->add(data);
-                return;
-            }
-
-            throw std::out_of_range("set element at: Cannot get element at index");
+            throw std::out_of_range("Cannot get element at index"); // todo change
+            // return;
         }
 
+        // get current (first)
         Node<T> *current = head;
 
         // change the head
         if (index == 0) {
+            Node<T> *old_head = current;
             Node<T> *new_node = new Node<T>(data);
+
             head = new_node;
+            head->set_next(old_head);
 
             return;
         }
@@ -102,10 +106,6 @@ public:
         // insert element
         Node<T> *new_node = new Node<T>(data);
         parent_to_current->set_next(new_node);
-        new_node->set_next(current->get_next());
-    }
-
-    bool is_empty() {
-        return head == nullptr;
+        new_node->set_next(current);
     }
 };
