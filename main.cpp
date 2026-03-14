@@ -11,11 +11,14 @@
 */
 
 int main() {
-  Warehouse *wh = new Warehouse();
 
-  wh->read_crates(FILENAME);
+    // Create warehouse
+    Warehouse *wh = new Warehouse();
 
-  delete wh;
-  
-  return 0;
+    // Read crates from file and add to arrival queue
+    wh->read_crates(FILENAME);
+
+    delete wh;
+
+    return 0;
 }
