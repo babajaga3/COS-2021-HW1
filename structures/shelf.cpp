@@ -38,17 +38,22 @@ public:
         return lastItem;
     }
 
+    Crate get_crate(const int index) const {
+        if (index < 0 || index > top) {
+            throw std::out_of_range("shelf - get_crate: cannot get element at index");
+        }
+
+        return array[index];
+    }
+
     void print() {
         if (is_empty()) {
-            std::cout << "Shelf is empty\n";
             return;
         }
 
         for (int i = 0; i <= top; i++) {
-            std::cout << array[i].get_weight() << " ";
+            std::cout << array[i].get_weight() << "\n";
         }
-
-        std::cout << std::endl;
     }
 
     bool can_put_on_top(const Crate& crate) const {

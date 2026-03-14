@@ -79,17 +79,21 @@ public:
                 } catch (std::logic_error e) {}
             }
         } while (arrival_queue->is_empty() == false);
-
         shelves.add(current_shelf);
     }
 
     void print() {
-        std::cout << "function finished\n\n";
         for (int i = 0; i < NUMBER_OF_SHELVES; i++) {
-            Shelf curr_shelf = shelves.get_element_at(i).get_data();
-            std::cout << "_______" << std::endl;
-            std::cout << "SHELF " << i + 1 << std::endl;
-            curr_shelf.print();
+            std::cout << "SHELF " << i + 1 << " ";
+        }
+
+        std::cout << std::endl;
+
+        for (int i = 0; i < BULK_LIMIT; i++) {
+            for (int j = 0; j < NUMBER_OF_SHELVES; j++) {
+                Shelf shelf = shelves.get_element_at(j).get_data();
+                std::cout << shelf.get_crate(i).get_weight() << " ";
+            }
         }
     }
 
