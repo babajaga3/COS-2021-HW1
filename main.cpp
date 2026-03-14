@@ -39,7 +39,7 @@ int main() {
     std::cout << "Unable to open file";
   }
 
-  wh->main_sorting_function(0);
+  // wh->main_sorting_function(0);
 
   wh->print();
 

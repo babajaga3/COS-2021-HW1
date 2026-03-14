@@ -27,12 +27,7 @@ public:
         return *arrival_queue;
     }
 
-    void set_arrival_queue(Queue<InputCrate>* arrival_queue) {
-        this->arrival_queue = arrival_queue;
-    }
-
     void sort() {
-        int sum = 0;
         if (arrival_queue->is_empty()) {
             throw std::logic_error("Cannot sort items in an empty queue.");
         }
