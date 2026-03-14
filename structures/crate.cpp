@@ -23,7 +23,6 @@ public:
         return uuid;
     }
 
-    // todo might not need this
     void set_weight(int weight) {
         this->weight = weight;
     }
