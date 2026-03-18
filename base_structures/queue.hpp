@@ -28,7 +28,6 @@ public:
     }
 
     T dequeue() {
-        // make sure queue is not empty
         if (head == nullptr) {
             throw std::length_error("Queue is empty");
             // return;
@@ -45,21 +44,16 @@ public:
         Node<T> *parent_of_current = nullptr;
         Node<T> *current = head;
 
-        // loop through until you reach the end
-        // then
         while (current->get_next()) {
             parent_of_current = current;
             current = current->get_next();
         }
 
-        // TOTAL DESTRUCTION
         Node<T> *to_delete = current;
         T data_to_return = to_delete->get_data();
 
         delete to_delete;
         if (parent_of_current != nullptr) parent_of_current->set_next(nullptr);
-
-
 
         return data_to_return;
     }
@@ -67,9 +61,4 @@ public:
     bool is_empty() {
         return head == nullptr;
     }
-
-    // T get_front() {}
-    //
-    // T get_rear() {}
-    //
 };

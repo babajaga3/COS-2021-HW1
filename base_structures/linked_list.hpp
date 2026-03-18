@@ -58,13 +58,13 @@ public:
 
         for (int i = 0; i < index; i++) {
             if (current == nullptr) {
-                throw std::out_of_range("Index out of range");
+                throw std::out_of_range("linked list - get_element_at: Index out of range");
             }
             current = current->get_next();
         }
 
         if (current == nullptr) {
-            throw std::out_of_range("Index out of range");
+            throw std::out_of_range("linked list - get_element_at: Index out of range");
         }
 
         return *current;

@@ -1,194 +1,381 @@
 #include <stdexcept>
 #include <vector>
+#include <fstream>
+#include <iostream>
+#include <string>
 #include "shelf.cpp"
-#include "../base_structures/linked_list.hpp"
+#include "../base_structures/new_linked_list.hpp"
 #include "../base_structures/queue.hpp"
 
 class Warehouse {
-    // 10 shelves
-    LinkedList<Shelf> shelves;
-    // 1 arrival queue
-    Queue<InputCrate> arrival_queue;
-    // 1 sorting floor
-    std::vector<Crate> sorting_floor;
+    LinkedList<Shelf> *shelves;
+    Queue<InputCrate> *arrival_queue;
+    std::vector<Crate> *sorting_floor;
+
+    void erase_by_id(const std::string uuid) const {
+        for (int i = 0; i < sorting_floor->size(); i++) {
+            if (sorting_floor->at(i).get_uuid() == uuid) {
+                sorting_floor->erase(sorting_floor->begin() + i);
+            }
+        }
+    }
 
 public:
     Warehouse() {
-        shelves = LinkedList<Shelf>(NUMBER_OF_SHELVES);
-        arrival_queue = Queue<InputCrate>();
-        // todo sorting floor later
+        shelves = new LinkedList<Shelf>();
+        arrival_queue = new Queue<InputCrate>();
+        sorting_floor = new std::vector<Crate>();
     }
 
-    Queue<InputCrate> get_arrival_queue() const {
-        return arrival_queue;
+    ~Warehouse() {
+        delete shelves;
+        delete arrival_queue;
+        delete sorting_floor;
     }
 
-    void set_arrival_queue(Queue<InputCrate> arrival_queue) {
-        this->arrival_queue = arrival_queue;
+    Queue<InputCrate> &get_arrival_queue() const {
+        return *arrival_queue;
     }
 
-    void sort() {
-        int sum = 0;
-        if (arrival_queue.is_empty()) {
+    void read_crates(const std::string filename) const {
+        std::ifstream crate_file(filename);
+
+        if (crate_file.is_open()) {
+            std::string line;
+            while (getline(crate_file, line, '\n')) {
+                std::string delimiter = " ";
+                std::string weight = line.substr(0, line.find(delimiter));
+
+                // Source - https://stackoverflow.com/a/14266139
+                // Posted by Vincenzo Pii, modified by community. See post 'Timeline' for
+                // change history Retrieved 2026-02-10, License - CC BY-SA 4.0
+                line.erase(0, line.find(delimiter) + delimiter.length());
+
+                std::string uuid = line.substr(0, line.find(delimiter));
+                InputCrate ic = {std::stoi(weight), uuid};
+
+                arrival_queue->enqueue(ic);
+            };
+
+            crate_file.close();
+        } else {
+            std::cout << "Unable to open file";
+        }
+    }
+
+    void sort() const {
+        if (arrival_queue->is_empty()) {
             throw std::logic_error("Cannot sort items in an empty queue.");
         }
 
-        Shelf current_shelf = Shelf();
+        Shelf current_shelf;
 
         do {
-            InputCrate ic = arrival_queue.dequeue();
-            Crate crate = Crate(ic.weight, ic.uuid);
+            const InputCrate ic = arrival_queue->dequeue();
+            const Crate crate = Crate(ic.weight, ic.uuid);
 
             for (int i = 0; i <= NUMBER_OF_SHELVES; i++) {
                 try {
                     current_shelf.push(crate);
                     std::cout << crate.get_weight() << std::endl;;
                     break;
-                } catch (std::range_error e) {
-                    shelves.add(current_shelf);
+                } catch (std::range_error &e) {
+                    shelves->push_back(current_shelf);
                     current_shelf = Shelf();
-                } catch (std::logic_error e) {}
+                } catch (std::logic_error &e) {
+                }
             }
-        } while (arrival_queue.is_empty() == false);
-
-        shelves.add(current_shelf);
+        } while (arrival_queue->is_empty() == false);
+        shelves->push_back(current_shelf);
     }
 
-    void print() {
-        std::cout << "function finished\n\n";
+    void sort_hw2() const {
+        // Create 10 shelves
         for (int i = 0; i < NUMBER_OF_SHELVES; i++) {
-            Shelf curr_shelf = shelves.get_element_at(i).get_data();
-            std::cout << "_______" << std::endl;
-            std::cout << "SHELF " << i + 1 << std::endl;
-            curr_shelf.print();
+            shelves->push_back(Shelf());
         }
-    }
 
-    void sort_two() { // new sorting algorithm design for hw 2
-        // Step 1: check if there is an existing shelf?
-        // If no: create shelf, run function again
-        // If yes: continue
+        int fails = 0;
 
-        // Step 2: Check if sorting floor is empty?
-        // If yes: get crate from arrival queue, continue
-        // If no: get last element from sf, continue
+        while (!arrival_queue->is_empty() || !sorting_floor->empty()) {
+            Crate crate;
 
-        // Step 3: Using element,
-        // Run function `can_put_on_shelf`?
-        // If yes: put and
-        // Run function again
-
-        // If no: If you remove last element, combine
-            //  new total weight with incoming element
-                // Is new total weight > old total weight && < max weight?
-                    // If yes:
-                    // remove last element and add to sorting floor
-
-                    /*
-                     *  check if you can put it on top
-                     *
-                     *  if no:
-                     *      remove last element to sorting floor
-                     *      try again
-                     *
-                     *  if yes:
-                     *      put to shelf
-                     *      run whole function recursively
-                     *
-                     */
-
-                    // If no:
-                        // remove the element before that last checked index - 1
-                        // try check again
-                        // if none work - go to next shelf (create new shelf and pass it in the function), and try whole function again.
-
-
-
-    }
-
-    void sort_items_in_shelf(Shelf& current_shelf, Crate& current_crate, const int index) {
-        const Crate last = current_shelf.last();
-
-        const int new_total_weight =
-            current_shelf.get_total_weight() + current_crate.get_weight() - last.get_weight();
-
-        if (new_total_weight > current_shelf.get_total_weight() && new_total_weight < WEIGHT_LIMIT) {
-
-            while (!current_shelf.can_put_on_top(current_crate)) {
-                const Crate last_shelf = current_shelf.pop();
-                this->sorting_floor.push_back(last_shelf);
+            // Set crate either from queue or sorting_floor
+            if (this->sorting_floor->empty()) {
+                crate = Crate::convert_to_crate(arrival_queue->dequeue());
+            } else {
+                crate = this->sorting_floor->back();
             }
 
-            current_shelf.push(current_crate);
+            // Basically try all shelves for this crate
+            for (int i = 0; i < shelves->get_size(); i++) {
 
-            shelves.set_element_at(0, current_shelf);
+                // Get i-th shelf
+                Shelf *shelf = &shelves->get_element_at(i);
 
-            main_sorting_function(index);
+                // try to add the crate normally.
+                if (shelf->can_put_on_shelf(crate)) {
+                    shelf->push(crate);
 
-        } else {
-            main_sorting_function(index + 1);
-        }
-    }
+                    // If crate is coming from floor, clear it.
+                    if (!this->sorting_floor->empty()) {
+                        erase_by_id(crate.get_uuid());
+                    }
 
-    void main_sorting_function(const int index) {
-        Shelf current_shelf;
-        Crate current_crate;
-
-        if (!shelves.is_empty()) {
-            try {
-                current_shelf = shelves.get_element_at(index).get_data();
-            } catch (std::out_of_range e) {
-                const Shelf new_shelf;
-                shelves.add(new_shelf);
-
-                main_sorting_function(index);
-                return;
-            }
-        }
-
-        if (this->sorting_floor.empty()) {
-            try {
-                const InputCrate ic = arrival_queue.dequeue();
-                current_crate = Crate(ic.weight, ic.uuid);
-            } catch (std::length_error e) {
-                std::cout << "both arrival queue and sorting floor are empty" << std::endl;
-                this->print();
-                exit(0);
-            }
-        } else {
-            current_crate = this->sorting_floor.back();
-            this->sorting_floor.pop_back();
-        }
-
-        if (current_shelf.can_put_on_shelf(current_crate)) {
-            current_shelf.push(current_crate);
-            // shelves.set_element_at(index, current_shelf);
-        } else {
-            const Crate last = current_shelf.last();
-
-            const int new_total_weight =
-                current_shelf.get_total_weight() + current_crate.get_weight() - last.get_weight();
-
-            if (new_total_weight > current_shelf.get_total_weight() && new_total_weight <= WEIGHT_LIMIT) {
-
-                while (!current_shelf.can_put_on_top(current_crate)) {
-                    const Crate last_shelf = current_shelf.pop();
-                    this->sorting_floor.push_back(last_shelf);
+                    std::printf("Sorted crate no.%s \n", crate.get_uuid().c_str());
+                    break;
                 }
 
-                current_shelf.push(current_crate);
-                // shelves.set_element_at(index, current_shelf);
-            } else {
-                main_sorting_function(index + 1);
+                // Handle case where you are reordering shelves
+                if (!this->sorting_floor->empty()) {
+                    // Get last shelf
+                    Crate last = shelf->last();
+
+                    const int new_total_weight =
+                            shelf->get_total_weight() + crate.get_weight() - last.get_weight();
+
+                    const bool should_reorder = new_total_weight > shelf->get_total_weight() && new_total_weight <=
+                                                WEIGHT_LIMIT;
+
+                    // If it is better to reorder... (ie, weight would be more, without breaking the rules)
+                    if (should_reorder) {
+                        while (!shelf->can_put_on_shelf(crate)) {
+                            // Remove last shelf
+                            Crate temp_crate = shelf->pop();
+
+                            // Can i put the crate now?
+                            if (shelf->can_put_on_shelf(crate)) {
+                                shelf->push(crate);
+                                erase_by_id(crate.get_uuid());
+
+                                std::printf("Resorted crate no.%s \n", crate.get_uuid().c_str());
+                                break;
+                            }
+
+                            this->sorting_floor->push_back(temp_crate);
+                        }
+                    } else {
+                        // If you shouldn't reorder this shelf, go to the next one.
+                        continue;
+                    }
+
+                    // you reordered and its better - go to the next crate
+                    break;
+                }
+
+                if (shelf->can_put_on_shelf(crate)) {
+                    shelf->push(crate);
+                    std::printf("Sorted crate no.%s \n", crate.get_uuid().c_str());
+                    break;
+                }
+
+                // If all else fails, add the crate to the sorting floor
+                if (i == shelves->get_size() - 1) {
+                    this->sorting_floor->push_back(crate);
+                    break;
+                }
+            }
+
+            if (fails > 100) {
+                std::cout << "Failed too many times. Exiting loop..." << "\n";
+                // throw std::logic_error("errorsss");
+                break;
+            }
+
+            if (!arrival_queue->is_empty() && !this->sorting_floor->empty()) {
+                fails++;
             }
         }
 
-        if (shelves.is_empty()) {
-            shelves.add(current_shelf);
+
+        if (arrival_queue->is_empty()) {
+            std::cout << "\n\n\nArrival queue is empty. Checking sorting floor...\n";
         }
 
-        if (!this->sorting_floor.empty() || !arrival_queue.is_empty()) {
-            main_sorting_function(index);
+        if (this->sorting_floor->empty()) {
+            std::cout << "Sorting floor is empty. Printing...\n";
+        }
+
+        std::cout << "Number of fails: " << fails << "\n\n\n";
+    }
+
+
+    // Help was sourced from this post - https://stackoverflow.com/a/23777065/14422658
+    void print() const {
+        std::printf("%-8s%-8s%-8s%-8s%-8s\n", "SHELF01", "SHELF02", "SHELF03", "SHELF04", "SHELF05");
+
+        // Loop for rows
+        for (int i = BULK_LIMIT - 1; i >= 0; i--) {
+            // Loop for columns
+            for (int j = 0; j < 5; j++) {
+                Shelf shelf = shelves->get_element_at(j);
+
+                try {
+                    const int weight = shelf.get_crate(i).get_weight();
+
+                    std::printf("%-8d", weight);
+                } catch (std::out_of_range &e) {
+                    std::printf("%-8s", "");
+                }
+            }
+
+            std::cout << std::endl;
+        }
+
+        for (int i = 0; i < 5; i++) {
+            std::printf("%-8s", shelves->get_element_at(i).get_total_weight() <= WEIGHT_LIMIT ? "GOOD" : "BAD");
+        }
+
+        std::cout << std::endl;
+        std::cout << std::endl;
+
+        std::printf("%-8s%-8s%-8s%-8s%-8s\n", "SHELF06", "SHELF07", "SHELF08", "SHELF09", "SHELF10");
+
+        // Loop for rows
+        for (int i = BULK_LIMIT - 1; i >= 0; i--) {
+            // Loop for columns
+            for (int j = 5; j < 10; j++) {
+                Shelf shelf = shelves->get_element_at(j);
+
+                try {
+                    const int weight = shelf.get_crate(i).get_weight();
+
+                    std::printf("%-8d", weight);
+                } catch (std::out_of_range &e) {
+                    std::printf("%-8s", "");
+                }
+            }
+
+            std::cout << std::endl;
+        }
+
+        for (int i = 5; i < 10; i++) {
+            std::printf("%-8s", shelves->get_element_at(i).get_total_weight() <= WEIGHT_LIMIT ? "GOOD" : "BAD");
         }
     }
+
+
+    // new sorting algorithm design for hw 2
+    // Step 1: check if there is an existing shelf?
+    // If no: create shelf, run function again
+    // If yes: continue
+
+    // Step 2: Check if sorting floor is empty?
+    // If yes: get crate from arrival queue, continue
+    // If no: get last element from sf, continue
+
+    // Step 3: Using element,
+    // Run function `can_put_on_shelf`?
+    // If yes: put and
+    // Run function again
+
+    // If no: If you remove last element, combine
+    //  new total weight with incoming element
+    // Is new total weight > old total weight && < max weight?
+    // If yes:
+    // remove last element and add to sorting floor
+
+    /*
+     *  check if you can put it on top
+     *
+     *  if no:
+     *      remove last element to sorting floor
+     *      try again
+     *
+     *  if yes:
+     *      put to shelf
+     *      run whole function recursively
+     *
+     */
+
+    // If no:
+    // remove the element before that last checked index - 1
+    // try check again
+    // if none work - go to next shelf (create new shelf and pass it in the function), and try whole function again.
+
+    // void sort_items_in_shelf(Shelf& current_shelf, Crate& current_crate, const int index) {
+    //     const Crate last = current_shelf.last();
+    //
+    //     const int new_total_weight =
+    //         current_shelf.get_total_weight() + current_crate.get_weight() - last.get_weight();
+    //
+    //     if (new_total_weight > current_shelf.get_total_weight() && new_total_weight < WEIGHT_LIMIT) {
+    //
+    //         while (!current_shelf.can_put_on_top(current_crate)) {
+    //             const Crate last_shelf = current_shelf.pop();
+    //             this->sorting_floor.push_back(last_shelf);
+    //         }
+    //
+    //         current_shelf.push(current_crate);
+    //
+    //         shelves.set_element_at(0, current_shelf);
+    //
+    //         main_sorting_function(index);
+    //
+    //     } else {
+    //         main_sorting_function(index + 1);
+    //     }
+    // }
+    //
+    // void main_sorting_function(const int index) {
+    //     Shelf current_shelf;
+    //     Crate current_crate;
+    //
+    //     if (!shelves.is_empty()) {
+    //         try {
+    //             current_shelf = shelves.get_element_at(index).get_data();
+    //         } catch (std::out_of_range e) {
+    //             const Shelf new_shelf;
+    //             shelves.add(new_shelf);
+    //
+    //             main_sorting_function(index);
+    //             return;
+    //         }
+    //     }
+    //
+    //     if (this->sorting_floor.empty()) {
+    //         try {
+    //             const InputCrate ic = arrival_queue->dequeue();
+    //             current_crate = Crate(ic.weight, ic.uuid);
+    //         } catch (std::length_error e) {
+    //             std::cout << "both arrival queue and sorting floor are empty" << std::endl;
+    //             this->print();
+    //             exit(0);
+    //         }
+    //     } else {
+    //         current_crate = this->sorting_floor.back();
+    //         this->sorting_floor.pop_back();
+    //     }
+    //
+    //     if (current_shelf.can_put_on_shelf(current_crate)) {
+    //         current_shelf.push(current_crate);
+    //         // shelves.set_element_at(index, current_shelf);
+    //     } else {
+    //         const Crate last = current_shelf.last();
+    //
+    //         const int new_total_weight =
+    //             current_shelf.get_total_weight() + current_crate.get_weight() - last.get_weight();
+    //
+    //         if (new_total_weight > current_shelf.get_total_weight() && new_total_weight <= WEIGHT_LIMIT) {
+    //
+    //             while (!current_shelf.can_put_on_top(current_crate)) {
+    //                 const Crate last_shelf = current_shelf.pop();
+    //                 this->sorting_floor.push_back(last_shelf);
+    //             }
+    //
+    //             current_shelf.push(current_crate);
+    //             // shelves.set_element_at(index, current_shelf);
+    //         } else {
+    //             main_sorting_function(index + 1);
+    //         }
+    //     }
+    //
+    //     if (shelves.is_empty()) {
+    //         shelves.add(current_shelf);
+    //     }
+    //
+    //     if (!this->sorting_floor.empty() || !arrival_queue->is_empty()) {
+    //         main_sorting_function(index);
+    //     }
+    // }
 };

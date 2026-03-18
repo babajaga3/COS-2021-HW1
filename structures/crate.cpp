@@ -1,4 +1,5 @@
 #include <string>
+#include "../config.hpp"
 
 class Crate {
     int weight;
@@ -23,12 +24,15 @@ public:
         return uuid;
     }
 
-    // todo might not need this
     void set_weight(int weight) {
         this->weight = weight;
     }
 
     void set_uuid(std::string uuid) {
         this->uuid = uuid;
+    }
+
+    static Crate convert_to_crate(InputCrate ic) {
+        return {ic.weight, ic.uuid};
     }
 };

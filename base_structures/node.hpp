@@ -11,7 +11,7 @@ public:
         next = nullptr;
     }
 
-    T & get_data() {
+    T& get_data() {
         return data;
     }
 
