@@ -35,6 +35,7 @@ public:
         Crate lastItem = array[top];
         array[top--] = Crate();
         totalWeight -= lastItem.get_weight();
+
         return lastItem;
     }
 

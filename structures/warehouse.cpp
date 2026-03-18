@@ -100,6 +100,7 @@ public:
         while (!arrival_queue->is_empty() || !sorting_floor->empty()) {
             Crate crate;
 
+            // Set crate either from queue or sorting_floor
             if (this->sorting_floor->empty()) {
                 crate = Crate::convert_to_crate(arrival_queue->dequeue());
             } else {
@@ -108,6 +109,7 @@ public:
 
             // Basically try all shelves for this crate
             for (int i = 0; i < shelves->get_size(); i++) {
+
                 // Get i-th shelf
                 Shelf *shelf = &shelves->get_element_at(i);
 
@@ -153,9 +155,11 @@ public:
                             this->sorting_floor->push_back(temp_crate);
                         }
                     } else {
+                        // If you shouldn't reorder this shelf, go to the next one.
                         continue;
                     }
 
+                    // you reordered and its better - go to the next crate
                     break;
                 }
 
@@ -168,6 +172,7 @@ public:
                 // If all else fails, add the crate to the sorting floor
                 if (i == shelves->get_size() - 1) {
                     this->sorting_floor->push_back(crate);
+                    break;
                 }
             }
 
@@ -182,15 +187,20 @@ public:
             }
         }
 
+
         if (arrival_queue->is_empty()) {
-            std::cout << "Arrival queue is empty. Checking sorting floor...\n\n\n";
+            std::cout << "\n\n\nArrival queue is empty. Checking sorting floor...\n";
         }
 
         if (this->sorting_floor->empty()) {
-            std::cout << "Sorting floor is empty. Printing...\n\n\n";
+            std::cout << "Sorting floor is empty. Printing...\n";
         }
+
+        std::cout << "Number of fails: " << fails << "\n\n\n";
     }
 
+
+    // Help was sourced from this post - https://stackoverflow.com/a/23777065/14422658
     void print() const {
         std::printf("%-8s%-8s%-8s%-8s%-8s\n", "SHELF01", "SHELF02", "SHELF03", "SHELF04", "SHELF05");
 

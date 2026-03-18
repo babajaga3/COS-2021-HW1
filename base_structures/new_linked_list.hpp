@@ -3,6 +3,7 @@
 #include <stdexcept>
 #include "node.hpp"
 
+// Help was sourced from - https://www.learn-cpp.org/en/Linked_lists
 template<typename T>
 class LinkedList {
 private:
@@ -39,6 +40,10 @@ public:
         head = temp;
 
         size++;
+    }
+
+    int get_size() const {
+        return size;
     }
 
     T &get_element_at(const int index) const {

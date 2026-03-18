@@ -1,4 +1,5 @@
 #include <string>
+#include "../config.hpp"
 
 class Crate {
     int weight;
@@ -29,5 +30,9 @@ public:
 
     void set_uuid(std::string uuid) {
         this->uuid = uuid;
+    }
+
+    static Crate convert_to_crate(InputCrate ic) {
+        return {ic.weight, ic.uuid};
     }
 };
